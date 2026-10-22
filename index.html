@@ -101,7 +101,7 @@ const mk=async()=>{const c=gen();
 async function tHome(){const {data:s=[]}=await sb.from('students').select('*').order('created_at');ST=s;
  A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
  <div class="card"><b>+ إضافة طالب</b><input id="sn" placeholder="اسم الطالب"><button onclick="addS()">إضافة</button><p id="msg" class="m"></p></div>
- <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b><br><span class="tag ${x.activated?'on':''}">${x.activated?'مفعّل':'لم يدخل بعد'}</span></div></div>
+ <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b></div></div>
  <div class="row"><button onclick="openS('${x.id}')">فتح</button><button class="g" onclick="cp('${x.id}',this)">نسخ الرمز</button><button class="d" onclick="delS('${x.id}')">حذف</button></div></div>`).join('')}</div>
  ${s.length?'':'<p class="m">لا طلاب بعد</p>'}`}
 async function addS(){const n=$('#sn').value.trim();if(!n)return;say('جارٍ الإضافة...');
