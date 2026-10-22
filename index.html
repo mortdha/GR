@@ -21,13 +21,13 @@ button.g{color:var(--a)}button.d{color:var(--r)}
 button.g:active,button.d:active{transform:translateY(3px);box-shadow:0 0 0 var(--l)}
 .card{background:var(--c);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 2px 14px #1b1f2a14}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}.sp{justify-content:space-between}
-.hero{text-align:center;padding:6vh 0 0;display:flex;flex-direction:column;min-height:calc(100vh - 130px)}.logo{font-size:56px}
+.hero{text-align:center;padding:6vh 0 0}.logo{font-size:56px}
 .two{display:flex;flex-direction:column;align-items:center;gap:24px;margin:30px auto}
 .big{width:min(250px,80%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:20px;box-shadow:0 6px 0 var(--sh),0 12px 20px #0004}
 .big:active{transform:translateY(6px);box-shadow:0 0 0 var(--sh),0 3px 6px #0004}
 .big svg{width:44px;height:44px}.big span{font-size:20px;font-weight:700}
 .big.t{background:linear-gradient(180deg,#44559f,#1f2a5e);--sh:#121a44}
-#f{width:100%;max-width:460px;margin:0 auto;text-align:right}
+#f{max-width:460px;margin:0 auto;text-align:right}
 .m{color:var(--m);font-size:15px}.e{color:var(--r);font-size:15px;min-height:1.5em}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
 .grid .card{margin:0}
@@ -49,9 +49,6 @@ audio{width:100%;margin:8px 0}
 .tw td{border:1px solid var(--l);padding:4px 10px;font-size:16px;line-height:1.7}
 tr.ln.n td{background:var(--h)}tr.ln.sel td{outline:2px solid var(--a);outline-offset:-2px}
 #bo{min-height:55vh}
-.ft{margin-top:auto;padding:36px 0 4px;font-size:15px}
-.ft a{color:#6f9d10;font-weight:700;text-decoration:none}
-@media(prefers-color-scheme:dark){.ft a{color:#a6d63b}}
 </style></head><body><main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>
@@ -75,8 +72,7 @@ async function boot(){
 
 function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>مراجعة الفصول</h1><p class="m">اختر نوع الدخول</p>
 <div class="two"><button class="big t" onclick="lm('t')"><svg viewBox="0 0 64 64"><path d="M32 12 4 26l28 14 28-14z" fill="currentColor"/><path d="M16 34v10c0 4 7 8 16 8s16-4 16-8V34l-16 8z" fill="currentColor" opacity=".75"/><path d="M56 28v18" stroke="#f5c542" stroke-width="3" stroke-linecap="round"/><circle cx="56" cy="49" r="3.5" fill="#f5c542"/></svg><span>أستاذ</span></button><button class="big" onclick="lm('s')"><svg viewBox="0 0 64 64"><circle cx="32" cy="20" r="12" fill="currentColor"/><path d="M8 58c0-14 10-22 24-22s24 8 24 22z" fill="currentColor"/></svg><span>طالب</span></button></div>
-<div id="f"></div><p id="msg" class="e">${esc(m||'')}</p>
-<p class="ft"><a href="https://t.me/Mortdh190" target="_blank" rel="noopener noreferrer">مرتضى الدحيدحاوي ©</a></p></div>`}
+<div id="f"></div><p id="msg" class="e">${esc(m||'')}</p></div>`}
 function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
 <input id="b" placeholder="${k=='t'?'الرمز الخاص بك':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
 <button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;$('#a').focus()}
@@ -105,7 +101,7 @@ const mk=async()=>{const c=gen();
 async function tHome(){const {data:s=[]}=await sb.from('students').select('*').order('created_at');ST=s;
  A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
  <div class="card"><b>+ إضافة طالب</b><input id="sn" placeholder="اسم الطالب"><button onclick="addS()">إضافة</button><p id="msg" class="m"></p></div>
- <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b></div></div>
+ <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b><br><span class="tag ${x.activated?'on':''}">${x.activated?'مفعّل':'لم يدخل بعد'}</span></div></div>
  <div class="row"><button onclick="openS('${x.id}')">فتح</button><button class="g" onclick="cp('${x.id}',this)">نسخ الرمز</button><button class="d" onclick="delS('${x.id}')">حذف</button></div></div>`).join('')}</div>
  ${s.length?'':'<p class="m">لا طلاب بعد</p>'}`}
 async function addS(){const n=$('#sn').value.trim();if(!n)return;say('جارٍ الإضافة...');
@@ -118,7 +114,6 @@ async function cp(id,b){const x=ST.find(y=>y.id==id);
   await sb.from('students').update({auth_uid:r.uid,code:r.c,activated:false}).eq('id',id);x.code=r.c;b.disabled=false}
  try{await navigator.clipboard.writeText(x.code)}catch(e){prompt('انسخ الرمز:',x.code)}
  b.textContent='✓ تم النسخ';setTimeout(()=>b.textContent='نسخ الرمز',1600)}
-const dr=n=>/^(د\.|د |الدكتور|دكتور|أ\.|الأستاذ|أستاذ|استاذ)/.test(n.trim())?n.trim():'د. '+n.trim();
 const files=c=>(c.notes||[]).filter(n=>n.a).map(n=>n.a);
 async function delCh(c){const f=files(c);if(f.length)await sb.storage.from('voice').remove(f);return sb.from('chapters').delete().eq('id',c.id)}
 async function delS(id){if(!confirm('حذف الطالب وكل فصوله وبصماته؟'))return;
@@ -141,9 +136,9 @@ function showC(id){cur=CS.find(c=>c.id==id);const nl=new Set((cur.notes||[]).map
  if(role=='t')$('#pl').innerHTML=`<div class="pills">${pl}</div>`;
  $('#ch').innerHTML=`${role=='s'?`<div class="pills">${pl}</div>`:''}<h3>${esc(cur.title)}</h3><p class="m">اضغط على أي سطر${role=='t'?' لكتابة ملاحظة أو تسجيل بصمة':' لرؤية الملاحظات (السطر الملوّن عليه ملاحظة)'}</p>
  <div class="paper">${rows(cur)}</div><div class="sheet" id="np"></div>`}
-function ln(i){stopRec();blob=null;const ns=(cur.notes||[]).filter(n=>n.l==i);
- $('#np').innerHTML=`<div class="row sp"><b>السطر ${i+1}</b><button class="g" onclick="closeS()">✕</button></div>
- ${ns.map(n=>`<div class="note">${esc(n.t||'')}<div class="row">${n.a?`<button class="g" data-p="${esc(n.a)}" onclick="play(this.dataset.p,this)">▶ تشغيل البصمة</button>`:''}${role=='t'?`<button class="d" data-n="${esc(n.id)}" onclick="rmN(this.dataset.n)">حذف</button>`:''}</div></div>`).join('')||'<p class="m">لا ملاحظات على هذا السطر</p>'}
+function ln(i){blob=null;const ns=(cur.notes||[]).filter(n=>n.l==i);
+ $('#np').innerHTML=`<div class="row sp"><b>السطر ${i+1}</b><button class="g" onclick="$('#np').classList.remove('open')">✕</button></div>
+ ${ns.map(n=>`<div class="note">${esc(n.t||'')}<div class="row">${n.a?`<button class="g" onclick="play('${n.a}',this)">▶ تشغيل البصمة</button>`:''}${role=='t'?`<button class="d" onclick="rmN('${n.id}')">حذف</button>`:''}</div></div>`).join('')||'<p class="m">لا ملاحظات على هذا السطر</p>'}
  <audio id="pv" controls hidden></audio>
  ${role=='t'?`<textarea id="nt" style="min-height:80px" placeholder="ملاحظة مكتوبة (اختياري)"></textarea><div class="row"><button class="g" id="rc" onclick="rec()">🎤 تسجيل</button><span id="tm" class="m"></span><button id="sv" onclick="saveN(${i})" style="margin-inline-start:auto">حفظ</button></div><p id="msg" class="m"></p>`:''}`;
  document.querySelectorAll('.ln.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('[data-i="'+i+'"]').forEach(e=>e.classList.add('sel'));$('#np').classList.add('open')}
@@ -151,8 +146,6 @@ async function play(p,b){b.disabled=true;const {data,error}=await sb.storage.fro
  if(error)return alert('تعذر التشغيل');const a=$('#pv');a.hidden=false;a.src=data.signedUrl;a.play().catch(()=>{})}
 
 /* ===== تسجيل الصوت (للأستاذ) ===== */
-function stopRec(){if(R){const r=R;R=null;clearInterval(tmr);r.onstop=null;r.ondataavailable=null;r.stream.getTracks().forEach(t=>t.stop());try{r.stop()}catch(e){}}}
-function closeS(){stopRec();$('#np').classList.remove('open')}
 async function rec(){const b=$('#rc');if(R){R.stop();return}
  if(!navigator.mediaDevices||!window.isSecureContext)return say('الميكروفون غير متاح هنا. افتح الرابط (https) في Chrome أو Safari.',1);
  b.disabled=true;let st;
@@ -164,9 +157,9 @@ async function rec(){const b=$('#rc');if(R){R.stop();return}
  catch(e){st.getTracks().forEach(t=>t.stop());return say('المتصفح لا يدعم التسجيل',1)}
  const ch=[];let s=0;R.ondataavailable=e=>ch.push(e.data);
  R.onstop=()=>{clearInterval(tmr);st.getTracks().forEach(t=>t.stop());blob=new Blob(ch,{type:R.mimeType||mt});R=null;
-  const x=$('#tm');if(x){b.textContent='🎤 إعادة';x.textContent='تم التسجيل ('+Math.round(blob.size/1024)+' KB)'}};
+  b.textContent='🎤 إعادة';$('#tm').textContent='تم التسجيل ('+Math.round(blob.size/1024)+' KB)'};
  R.start();b.textContent='⏹ إيقاف';
- tmr=setInterval(()=>{s++;const x=$('#tm');if(x)x.textContent=s+' / 60 ث';if(s>=60&&R)R.stop()},1000)}
+ tmr=setInterval(()=>{s++;$('#tm').textContent=s+' / 60 ث';if(s>=60&&R)R.stop()},1000)}
 async function saveN(i){const t=$('#nt').value.trim();if(!t&&!blob)return say('اكتب ملاحظة أو سجّل بصمة',1);
  if(R)return say('أوقف التسجيل أولاً',1);
  const sv=$('#sv');sv.disabled=true;sv.textContent='جارٍ الحفظ...';
@@ -183,10 +176,10 @@ async function rmN(id){const n=cur.notes.find(x=>x.id==id);if(n.a)await sb.stora
  const notes=cur.notes.filter(x=>x.id!=id);await sb.from('chapters').update({notes}).eq('id',cur.id);cur.notes=notes;showC(cur.id)}
 
 /* ===== الطالب ===== */
-async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').order('created_at');CS=cs;stu=me.id;const {data:tn}=await sb.rpc('my_teacher_name');
- A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>${tn?`<p class="m">مشرفك .. ${esc(dr(tn))}</p>`:''}
+async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').order('created_at');CS=cs;stu=me.id;
+ A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
  <div id="ch"></div>
- ${cs.length?`<div class="row"><button class="d" onclick="delC()">${cs.length==2?'حذف النسخة الأولى (لرفع نسخة جديدة)':'حذف النسخة'}</button></div>`:''}
+ ${cs.length?`<div class="row"><button class="d" onclick="delC()">حذف النسخة المعروضة</button></div>`:''}
  ${cs.length<2?`<div class="card"><b>رفع فصل${cs.length?' معدّل':''}</b><input id="ti" placeholder="عنوان الفصل"><textarea id="bo" placeholder="الصق نص الفصل هنا"></textarea><button onclick="up()">رفع</button><p id="msg" class="m"></p></div>`:'<p class="m">لديك نسختان. لرفع نسخة جديدة احذف الأولى بعد أن تطبّق ملاحظاتها.</p>'}`;
  if(cs.length)showC(cs[cs.length-1].id)}
 async function up(){const t=$('#ti').value.trim(),b=$('#bo').value.replace(/\r/g,'');if(!t||!b.trim())return say('اكتب العنوان والنص',1);
@@ -195,7 +188,7 @@ async function up(){const t=$('#ti').value.trim(),b=$('#bo').value.replace(/\r/g
  const {error}=await sb.from('chapters').insert({student_id:me.id,title:t,body:b});
  if(error)return say(error.message.includes('max_two')?'لديك نسختان. احذف الأولى أولاً.':error.message,1);sHome()}
 async function delC(){
- if(!confirm('حذف هذه النسخة بملاحظاتها وبصماتها نهائياً؟ تأكد أنك طبّقت الملاحظات.'))return;await delCh(CS[0]);sHome()}
+ if(!confirm('حذف هذه النسخة بملاحظاتها وبصماتها نهائياً؟ تأكد أنك طبّقت الملاحظات.'))return;await delCh(cur);sHome()}
 
 boot();
 </script></body></html>
