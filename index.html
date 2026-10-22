@@ -1,0 +1,174 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark">
+<title>مراجعة الفصول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5fb;--c:#fff;--t:#1b1f2a;--m:#6a7184;--l:#e3e7f1;--a:#4f46e5;--a2:#7c3aed;--h:#fff1b8;--r:#dc2626;--ok:#16a34a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1220;--c:#1a1e2f;--t:#edf0fa;--m:#99a1b8;--l:#2b3047;--a:#7b7bff;--a2:#a78bfa;--h:#4d4420;--r:#ff7b7b;--ok:#4ade80}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font:17px/1.8 Tajawal,system-ui,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+main{max-width:980px;margin:auto;padding:max(16px,env(safe-area-inset-top)) 16px 120px}
+h1{font-size:clamp(26px,5vw,38px);margin:.2em 0}h3{margin:.3em 0}
+input,textarea,button{font:inherit;color:inherit}
+input,textarea{width:100%;padding:14px 16px;margin:6px 0;border:1.5px solid var(--l);border-radius:14px;background:var(--c);font-size:16px;outline:none}
+input:focus,textarea:focus{border-color:var(--a)}textarea{min-height:160px;resize:vertical}
+:root{--sh:#3730a3}@media(prefers-color-scheme:dark){:root{--sh:#2a2985}}
+button{padding:11px 20px;border:0;background:linear-gradient(180deg,var(--a2),var(--a));color:#fff;border-radius:14px;cursor:pointer;min-height:46px;font-weight:500;box-shadow:0 4px 0 var(--sh),0 8px 14px #0003;transition:transform .08s,box-shadow .08s}
+button:active{transform:translateY(4px);box-shadow:0 0 0 var(--sh),0 2px 4px #0003}button:disabled{opacity:.5}
+button.g,button.d{background:var(--c);box-shadow:0 3px 0 var(--l),0 6px 10px #0001}
+button.g{color:var(--a)}button.d{color:var(--r)}
+button.g:active,button.d:active{transform:translateY(3px);box-shadow:0 0 0 var(--l)}
+.card{background:var(--c);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 2px 14px #1b1f2a14}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}.sp{justify-content:space-between}
+.hero{text-align:center;padding:6vh 0 0}.logo{font-size:56px}
+.two{display:flex;flex-direction:column;align-items:center;gap:24px;margin:30px auto}
+.big{width:min(250px,80%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:20px;box-shadow:0 6px 0 var(--sh),0 12px 20px #0004}
+.big:active{transform:translateY(6px);box-shadow:0 0 0 var(--sh),0 3px 6px #0004}
+.big svg{width:44px;height:44px}.big span{font-size:20px;font-weight:700}
+.big.t{background:linear-gradient(180deg,#44559f,#1f2a5e);--sh:#121a44}
+#f{max-width:460px;margin:0 auto;text-align:right}
+.m{color:var(--m);font-size:15px}.e{color:var(--r);font-size:15px;min-height:1.5em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.grid .card{margin:0}
+.av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;display:grid;place-items:center;font-weight:700}
+.tag{font-size:13px;padding:2px 10px;border-radius:99px;background:var(--l);color:var(--m)}.tag.on{background:#16a34a22;color:var(--ok)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pills button{min-height:42px;padding:8px 16px}
+.pills button.act{background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border-color:transparent}
+.paper{background:var(--c);border-radius:20px;padding:14px 10px;box-shadow:0 2px 14px #1b1f2a14;font-size:18px;line-height:2}
+.ln{padding:2px 10px;border-radius:10px;cursor:pointer;position:relative}.ln:hover{background:var(--l)}
+.ln.n{background:var(--h)}.ln.n::after{content:"●";color:var(--a);font-size:10px;margin-inline-start:8px}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:auto;max-width:780px;max-height:78vh;overflow:auto;background:var(--c);border-radius:24px 24px 0 0;box-shadow:0 -10px 40px #0004;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s;z-index:9}
+.sheet.open{transform:none}
+.note{background:var(--bg);border-radius:14px;padding:10px 14px;margin:8px 0}
+audio{width:100%;margin:8px 0}
+</style></head><body><main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>
+const U='https://dzoluepozbsslorvocwr.supabase.co',K='sb_publishable_iBj-QXz3Uaj5QrwkjNsnhw_cMt1MR_w';
+const sb=supabase.createClient(U,K),$=s=>document.querySelector(s),A=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>s.trim().replace(/\s+/g,' ').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
+const emS=c=>'s'+c.toLowerCase()+'@students.example.com',emT=c=>'t'+c.toLowerCase()+'@teachers.example.com';
+const gen=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
+let me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
+function say(m,e){const x=$('#msg');if(x){x.className=e?'e':'m';x.textContent=m}}
+async function out(){await sb.auth.signOut();home()}
+
+async function boot(){
+ const {data:{session}}=await sb.auth.getSession();if(!session)return home();
+ const {data:t}=await sb.from('teachers').select('*').maybeSingle();
+ if(t){role='t';me=t;return tHome()}
+ const {data:s}=await sb.from('students').select('*').maybeSingle();
+ if(s){role='s';me=s;sb.rpc('activate_me');return sHome()}
+ await sb.auth.signOut();home('هذا الحساب غير مرتبط بأستاذ أو طالب.')}
+
+function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>مراجعة الفصول</h1><p class="m">اختر نوع الدخول</p>
+<div class="two"><button class="big t" onclick="lm('t')"><svg viewBox="0 0 64 64"><path d="M32 12 4 26l28 14 28-14z" fill="currentColor"/><path d="M16 34v10c0 4 7 8 16 8s16-4 16-8V34l-16 8z" fill="currentColor" opacity=".75"/><path d="M56 28v18" stroke="#f5c542" stroke-width="3" stroke-linecap="round"/><circle cx="56" cy="49" r="3.5" fill="#f5c542"/></svg><span>أستاذ</span></button><button class="big" onclick="lm('s')"><svg viewBox="0 0 64 64"><circle cx="32" cy="20" r="12" fill="currentColor"/><path d="M8 58c0-14 10-22 24-22s24 8 24 22z" fill="currentColor"/></svg><span>طالب</span></button></div>
+<div id="f"></div><p id="msg" class="e">${esc(m||'')}</p></div>`}
+function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
+<input id="b" placeholder="${k=='t'?'الرمز الذي أعطاك إياه المشرف':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
+<button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;$('#a').focus()}
+
+async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
+ const {error}=await sb.auth.signInWithPassword({email:emS(c),password:c.toLowerCase()});
+ if(error)return say('الاسم أو الرمز غير صحيح',1);
+ const {data:s}=await sb.from('students').select('*').maybeSingle();
+ if(!s||norm(s.name)!==norm(n)){await sb.auth.signOut();return say('الاسم أو الرمز غير صحيح',1)}
+ boot()}
+async function inT(){const n=$('#a').value.trim(),c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
+ const e=emT(c),p=c.toLowerCase();say('جارٍ الدخول...');
+ let r=await sb.auth.signInWithPassword({email:e,password:p});
+ if(r.error){r=await sb.auth.signUp({email:e,password:p});if(r.error||!r.data.session)return say('الرمز غير صحيح',1)}
+ const {data:t}=await sb.from('teachers').select('*').maybeSingle();
+ if(!t){const {error}=await sb.rpc('register_teacher',{p_name:n,p_code:c});
+  if(error){await sb.auth.signOut();return say('الرمز غير صالح أو مستخدم من أستاذ آخر',1)}return boot()}
+ if(norm(t.name)!==norm(n)){await sb.auth.signOut();return say('الاسم أو الرمز غير صحيح',1)}
+ boot()}
+
+/* ===== الأستاذ ===== */
+const mk=async()=>{const c=gen();
+ const s2=supabase.createClient(U,K,{auth:{persistSession:false,autoRefreshToken:false}});
+ const {data,error}=await s2.auth.signUp({email:emS(c),password:c});
+ return error?{error}:{c,uid:data.user.id}};
+async function tHome(){const {data:s=[]}=await sb.from('students').select('*').order('created_at');
+ A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
+ <div class="card"><b>+ إضافة طالب</b><input id="sn" placeholder="اسم الطالب"><button onclick="addS()">إضافة وإنشاء رمز</button><p id="msg" class="m"></p></div>
+ <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b><br><span class="tag ${x.activated?'on':''}">${x.activated?'مفعّل':'لم يدخل بعد'}</span></div></div>
+ <div class="row"><button onclick="openS('${x.id}')">فتح</button><button class="g" onclick="reset('${x.id}')">رمز جديد</button><button class="d" onclick="delS('${x.id}')">حذف</button></div></div>`).join('')}</div>
+ ${s.length?'':'<p class="m">لا طلاب بعد</p>'}`}
+async function addS(){const n=$('#sn').value.trim();if(!n)return;say('جارٍ الإنشاء...');
+ const r=await mk();if(r.error)return say(r.error.message,1);
+ const {error}=await sb.from('students').insert({teacher_id:me.id,name:n,auth_uid:r.uid});
+ if(error)return say(error.message,1);await tHome();say(`رمز ${n}: ${r.c} — يظهر مرة واحدة فقط، أرسله له الآن.`)}
+async function reset(id){if(!confirm('الرمز الجديد يلغي القديم. متابعة؟'))return;
+ const r=await mk();if(r.error)return say(r.error.message,1);
+ await sb.from('students').update({auth_uid:r.uid,activated:false}).eq('id',id);await tHome();say('الرمز الجديد: '+r.c+' (يظهر مرة واحدة)')}
+const files=c=>(c.notes||[]).filter(n=>n.a).map(n=>n.a);
+async function delCh(c){const f=files(c);if(f.length)await sb.storage.from('voice').remove(f);return sb.from('chapters').delete().eq('id',c.id)}
+async function delS(id){if(!confirm('حذف الطالب وكل فصوله وبصماته؟'))return;
+ const {data:cs=[]}=await sb.from('chapters').select('*').eq('student_id',id);
+ for(const c of cs)await delCh(c);await sb.from('students').delete().eq('id',id);tHome()}
+async function openS(id){stu=id;
+ const {data:cs=[]}=await sb.from('chapters').select('*').eq('student_id',id).order('created_at');CS=cs;
+ A.innerHTML=`<button class="g" onclick="tHome()">→ رجوع</button><div id="pl"></div><div id="ch"></div>${cs.length?'':'<p class="m">لم يرفع الطالب فصلاً بعد</p>'}`;
+ if(cs.length)showC(cs[cs.length-1].id)}
+
+/* ===== عرض الفصل ===== */
+function showC(id){cur=CS.find(c=>c.id==id);const nl=new Set((cur.notes||[]).map(n=>n.l));
+ const pl=CS.map((c,i)=>`<button class="g ${c.id==id?'act':''}" onclick="showC('${c.id}')">النسخة ${i+1}</button>`).join('');
+ if(role=='t')$('#pl').innerHTML=`<div class="pills">${pl}</div>`;
+ $('#ch').innerHTML=`${role=='s'?`<div class="pills">${pl}</div>`:''}<h3>${esc(cur.title)}</h3><p class="m">اضغط على أي سطر${role=='t'?' لكتابة ملاحظة أو تسجيل بصمة':' لرؤية الملاحظات (السطر الملوّن عليه ملاحظة)'}</p>
+ <div class="paper">${cur.body.split('\n').map((t,i)=>`<div class="ln ${nl.has(i)?'n':''}" onclick="ln(${i})">${esc(t)||'&nbsp;'}</div>`).join('')}</div><div class="sheet" id="np"></div>`}
+function ln(i){blob=null;const ns=(cur.notes||[]).filter(n=>n.l==i);
+ $('#np').innerHTML=`<div class="row sp"><b>السطر ${i+1}</b><button class="g" onclick="$('#np').classList.remove('open')">✕</button></div>
+ ${ns.map(n=>`<div class="note">${esc(n.t||'')}<div class="row">${n.a?`<button class="g" onclick="play('${n.a}',this)">▶ تشغيل البصمة</button>`:''}${role=='t'?`<button class="d" onclick="rmN('${n.id}')">حذف</button>`:''}</div></div>`).join('')||'<p class="m">لا ملاحظات على هذا السطر</p>'}
+ <audio id="pv" controls hidden></audio>
+ ${role=='t'?`<textarea id="nt" style="min-height:80px" placeholder="ملاحظة مكتوبة (اختياري)"></textarea><div class="row"><button class="g" id="rc" onclick="rec()">🎤 تسجيل</button><span id="tm" class="m"></span><button onclick="saveN(${i})" style="margin-inline-start:auto">حفظ</button></div><p id="msg" class="m"></p>`:''}`;
+ requestAnimationFrame(()=>$('#np').classList.add('open'))}
+async function play(p,b){b.disabled=true;const {data,error}=await sb.storage.from('voice').createSignedUrl(p,300);b.disabled=false;
+ if(error)return alert('تعذر التشغيل');const a=$('#pv');a.hidden=false;a.src=data.signedUrl;a.play().catch(()=>{})}
+
+/* ===== تسجيل الصوت (للأستاذ) ===== */
+async function rec(){const b=$('#rc');if(R){R.stop();return}
+ if(!navigator.mediaDevices||!window.isSecureContext)return say('الميكروفون غير متاح هنا. افتح الرابط (https) في Chrome أو Safari.',1);
+ b.disabled=true;let st;
+ try{st=await navigator.mediaDevices.getUserMedia({audio:true})}
+ catch(e){b.disabled=false;return say(e.name=='NotAllowedError'?'تم رفض إذن الميكروفون. فعّله من إعدادات الموقع.':'تعذر فتح الميكروفون ('+e.name+')',1)}
+ b.disabled=false;
+ const mt=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||'';
+ try{R=new MediaRecorder(st,mt?{mimeType:mt,audioBitsPerSecond:32000}:{audioBitsPerSecond:32000})}
+ catch(e){st.getTracks().forEach(t=>t.stop());return say('المتصفح لا يدعم التسجيل',1)}
+ const ch=[];let s=0;R.ondataavailable=e=>ch.push(e.data);
+ R.onstop=()=>{clearInterval(tmr);st.getTracks().forEach(t=>t.stop());blob=new Blob(ch,{type:R.mimeType||mt});R=null;
+  b.textContent='🎤 إعادة';$('#tm').textContent='تم التسجيل ('+Math.round(blob.size/1024)+' KB)'};
+ R.start();b.textContent='⏹ إيقاف';
+ tmr=setInterval(()=>{s++;$('#tm').textContent=s+' / 60 ث';if(s>=60&&R)R.stop()},1000)}
+async function saveN(i){const t=$('#nt').value.trim();if(!t&&!blob)return say('اكتب ملاحظة أو سجّل بصمة',1);
+ if(R)return say('أوقف التسجيل أولاً',1);
+ const id=crypto.randomUUID(),n={id,l:i,t};
+ if(blob){const mt=(blob.type||'audio/mp4').split(';')[0],ext=mt.includes('mp4')?'m4a':'webm',p=`${stu}/${cur.id}/${id}.${ext}`;
+  say('جارٍ رفع الصوت...');
+  const {error}=await sb.storage.from('voice').upload(p,blob,{contentType:mt});
+  if(error)return say('فشل رفع الصوت: '+error.message,1);n.a=p}
+ const notes=[...(cur.notes||[]),n];
+ const {error}=await sb.from('chapters').update({notes}).eq('id',cur.id);
+ if(error)return say(error.message,1);cur.notes=notes;blob=null;showC(cur.id);ln(i)}
+async function rmN(id){const n=cur.notes.find(x=>x.id==id);if(n.a)await sb.storage.from('voice').remove([n.a]);
+ const notes=cur.notes.filter(x=>x.id!=id);await sb.from('chapters').update({notes}).eq('id',cur.id);cur.notes=notes;showC(cur.id)}
+
+/* ===== الطالب ===== */
+async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').order('created_at');CS=cs;stu=me.id;
+ A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
+ <div id="ch"></div>
+ ${cs.length?`<div class="row"><button class="d" onclick="delC()">حذف النسخة المعروضة</button></div>`:''}
+ ${cs.length<2?`<div class="card"><b>رفع فصل${cs.length?' معدّل':''}</b><input id="ti" placeholder="عنوان الفصل"><textarea id="bo" placeholder="الصق نص الفصل هنا"></textarea><button onclick="up()">رفع</button><p id="msg" class="m"></p></div>`:'<p class="m">لديك نسختان. لرفع نسخة جديدة احذف الأولى بعد أن تطبّق ملاحظاتها.</p>'}`;
+ if(cs.length)showC(cs[cs.length-1].id)}
+async function up(){const t=$('#ti').value.trim(),b=$('#bo').value;if(!t||!b.trim())return say('اكتب العنوان والنص',1);
+ const {error}=await sb.from('chapters').insert({student_id:me.id,title:t,body:b});
+ if(error)return say(error.message.includes('max_two')?'لديك نسختان. احذف الأولى أولاً.':error.message,1);sHome()}
+async function delC(){
+ if(!confirm('حذف هذه النسخة بملاحظاتها وبصماتها نهائياً؟ تأكد أنك طبّقت الملاحظات.'))return;await delCh(cur);sHome()}
+
+boot();
+</script></body></html>
