@@ -38,10 +38,17 @@ button.g:active,button.d:active{transform:translateY(3px);box-shadow:0 0 0 var(-
 .paper{background:var(--c);border-radius:20px;padding:14px 10px;box-shadow:0 2px 14px #1b1f2a14;font-size:18px;line-height:2}
 .ln{padding:2px 10px;border-radius:10px;cursor:pointer;position:relative}.ln:hover{background:var(--l)}
 .ln.n{background:var(--h)}.ln.n::after{content:"●";color:var(--a);font-size:10px;margin-inline-start:8px}
-.sheet{position:fixed;left:0;right:0;bottom:0;margin:auto;max-width:780px;max-height:78vh;overflow:auto;background:var(--c);border-radius:24px 24px 0 0;box-shadow:0 -10px 40px #0004;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s;z-index:9}
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:auto;max-width:780px;max-height:78vh;overflow:auto;background:var(--c);border-radius:24px 24px 0 0;box-shadow:0 -10px 40px #0004;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .12s;z-index:9}
 .sheet.open{transform:none}
 .note{background:var(--bg);border-radius:14px;padding:10px 14px;margin:8px 0}
 audio{width:100%;margin:8px 0}
+.ok{color:var(--ok);font-size:15px}
+.ln{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.ln.sel{outline:2px solid var(--a)}
+.tw{overflow-x:auto;margin:6px 0}.tw table{border-collapse:collapse;min-width:100%}
+.tw td{border:1px solid var(--l);padding:4px 10px;font-size:16px;line-height:1.7}
+tr.ln.n td{background:var(--h)}tr.ln.sel td{outline:2px solid var(--a);outline-offset:-2px}
+#bo{min-height:55vh}
 </style></head><body><main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>
@@ -51,8 +58,8 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const norm=s=>s.trim().replace(/\s+/g,' ').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
 const emS=c=>'s'+c.toLowerCase()+'@gmail.com',emT=c=>'t'+c.toLowerCase()+'@gmail.com';
 const gen=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
-let me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
-function say(m,e){const x=$('#msg');if(x){x.className=e?'e':'m';x.textContent=m}}
+let ST=[],me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
+function say(m,e){const x=$('#msg');if(x){x.className=e==1?'e':e==2?'ok':'m';x.textContent=m}}
 async function out(){await sb.auth.signOut();home()}
 
 async function boot(){
@@ -60,14 +67,14 @@ async function boot(){
  const {data:t}=await sb.from('teachers').select('*').maybeSingle();
  if(t){role='t';me=t;return tHome()}
  const {data:s}=await sb.from('students').select('*').maybeSingle();
- if(s){role='s';me=s;sb.rpc('activate_me');return sHome()}
+ if(s){role='s';me=s;await sb.rpc('activate_me');return sHome()}
  await sb.auth.signOut();home('هذا الحساب غير مرتبط بأستاذ أو طالب.')}
 
 function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>مراجعة الفصول</h1><p class="m">اختر نوع الدخول</p>
 <div class="two"><button class="big t" onclick="lm('t')"><svg viewBox="0 0 64 64"><path d="M32 12 4 26l28 14 28-14z" fill="currentColor"/><path d="M16 34v10c0 4 7 8 16 8s16-4 16-8V34l-16 8z" fill="currentColor" opacity=".75"/><path d="M56 28v18" stroke="#f5c542" stroke-width="3" stroke-linecap="round"/><circle cx="56" cy="49" r="3.5" fill="#f5c542"/></svg><span>أستاذ</span></button><button class="big" onclick="lm('s')"><svg viewBox="0 0 64 64"><circle cx="32" cy="20" r="12" fill="currentColor"/><path d="M8 58c0-14 10-22 24-22s24 8 24 22z" fill="currentColor"/></svg><span>طالب</span></button></div>
 <div id="f"></div><p id="msg" class="e">${esc(m||'')}</p></div>`}
 function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
-<input id="b" placeholder="${k=='t'?'الرمز الذي أعطاك إياه المشرف':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
+<input id="b" placeholder="${k=='t'?'الرمز الخاص بك':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
 <button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;$('#a').focus()}
 
 async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
@@ -91,19 +98,22 @@ const mk=async()=>{const c=gen();
  const s2=supabase.createClient(U,K,{auth:{persistSession:false,autoRefreshToken:false}});
  const {data,error}=await s2.auth.signUp({email:emS(c),password:c});
  return error?{error}:{c,uid:data.user.id}};
-async function tHome(){const {data:s=[]}=await sb.from('students').select('*').order('created_at');
+async function tHome(){const {data:s=[]}=await sb.from('students').select('*').order('created_at');ST=s;
  A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
- <div class="card"><b>+ إضافة طالب</b><input id="sn" placeholder="اسم الطالب"><button onclick="addS()">إضافة وإنشاء رمز</button><p id="msg" class="m"></p></div>
+ <div class="card"><b>+ إضافة طالب</b><input id="sn" placeholder="اسم الطالب"><button onclick="addS()">إضافة</button><p id="msg" class="m"></p></div>
  <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b><br><span class="tag ${x.activated?'on':''}">${x.activated?'مفعّل':'لم يدخل بعد'}</span></div></div>
- <div class="row"><button onclick="openS('${x.id}')">فتح</button><button class="g" onclick="reset('${x.id}')">رمز جديد</button><button class="d" onclick="delS('${x.id}')">حذف</button></div></div>`).join('')}</div>
+ <div class="row"><button onclick="openS('${x.id}')">فتح</button><button class="g" onclick="cp('${x.id}',this)">نسخ الرمز</button><button class="d" onclick="delS('${x.id}')">حذف</button></div></div>`).join('')}</div>
  ${s.length?'':'<p class="m">لا طلاب بعد</p>'}`}
-async function addS(){const n=$('#sn').value.trim();if(!n)return;say('جارٍ الإنشاء...');
+async function addS(){const n=$('#sn').value.trim();if(!n)return;say('جارٍ الإضافة...');
  const r=await mk();if(r.error)return say(r.error.message,1);
- const {error}=await sb.from('students').insert({teacher_id:me.id,name:n,auth_uid:r.uid});
- if(error)return say(error.message,1);await tHome();say(`رمز ${n}: ${r.c} — يظهر مرة واحدة فقط، أرسله له الآن.`)}
-async function reset(id){if(!confirm('الرمز الجديد يلغي القديم. متابعة؟'))return;
- const r=await mk();if(r.error)return say(r.error.message,1);
- await sb.from('students').update({auth_uid:r.uid,activated:false}).eq('id',id);await tHome();say('الرمز الجديد: '+r.c+' (يظهر مرة واحدة)')}
+ const {error}=await sb.from('students').insert({teacher_id:me.id,name:n,auth_uid:r.uid,code:r.c});
+ if(error)return say(error.message,1);await tHome();say('✓ تمت إضافة '+n+'. اضغط «نسخ الرمز» لإرساله له.',2)}
+async function cp(id,b){const x=ST.find(y=>y.id==id);
+ if(!x.code){b.disabled=true;b.textContent='جارٍ الإنشاء...';const r=await mk();
+  if(r.error){b.disabled=false;b.textContent='نسخ الرمز';return alert(r.error.message)}
+  await sb.from('students').update({auth_uid:r.uid,code:r.c,activated:false}).eq('id',id);x.code=r.c;b.disabled=false}
+ try{await navigator.clipboard.writeText(x.code)}catch(e){prompt('انسخ الرمز:',x.code)}
+ b.textContent='✓ تم النسخ';setTimeout(()=>b.textContent='نسخ الرمز',1600)}
 const files=c=>(c.notes||[]).filter(n=>n.a).map(n=>n.a);
 async function delCh(c){const f=files(c);if(f.length)await sb.storage.from('voice').remove(f);return sb.from('chapters').delete().eq('id',c.id)}
 async function delS(id){if(!confirm('حذف الطالب وكل فصوله وبصماته؟'))return;
@@ -115,17 +125,23 @@ async function openS(id){stu=id;
  if(cs.length)showC(cs[cs.length-1].id)}
 
 /* ===== عرض الفصل ===== */
+function rows(c){const nl=new Set((c.notes||[]).map(n=>n.l));let h='',t=0;
+ c.body.split('\n').forEach((x,i)=>{const tb=x.includes('\t');
+  if(tb&&!t){h+='<div class="tw"><table>';t=1}if(!tb&&t){h+='</table></div>';t=0}
+  const k='ln '+(nl.has(i)?'n':'')+'" data-i="'+i+'" onclick="ln('+i+')"';
+  h+=tb?`<tr class="${k}>${x.split('\t').map(y=>`<td>${esc(y)}</td>`).join('')}</tr>`:`<div class="${k}>${esc(x)||'&nbsp;'}</div>`});
+ return h+(t?'</table></div>':'')}
 function showC(id){cur=CS.find(c=>c.id==id);const nl=new Set((cur.notes||[]).map(n=>n.l));
  const pl=CS.map((c,i)=>`<button class="g ${c.id==id?'act':''}" onclick="showC('${c.id}')">النسخة ${i+1}</button>`).join('');
  if(role=='t')$('#pl').innerHTML=`<div class="pills">${pl}</div>`;
  $('#ch').innerHTML=`${role=='s'?`<div class="pills">${pl}</div>`:''}<h3>${esc(cur.title)}</h3><p class="m">اضغط على أي سطر${role=='t'?' لكتابة ملاحظة أو تسجيل بصمة':' لرؤية الملاحظات (السطر الملوّن عليه ملاحظة)'}</p>
- <div class="paper">${cur.body.split('\n').map((t,i)=>`<div class="ln ${nl.has(i)?'n':''}" onclick="ln(${i})">${esc(t)||'&nbsp;'}</div>`).join('')}</div><div class="sheet" id="np"></div>`}
+ <div class="paper">${rows(cur)}</div><div class="sheet" id="np"></div>`}
 function ln(i){blob=null;const ns=(cur.notes||[]).filter(n=>n.l==i);
  $('#np').innerHTML=`<div class="row sp"><b>السطر ${i+1}</b><button class="g" onclick="$('#np').classList.remove('open')">✕</button></div>
  ${ns.map(n=>`<div class="note">${esc(n.t||'')}<div class="row">${n.a?`<button class="g" onclick="play('${n.a}',this)">▶ تشغيل البصمة</button>`:''}${role=='t'?`<button class="d" onclick="rmN('${n.id}')">حذف</button>`:''}</div></div>`).join('')||'<p class="m">لا ملاحظات على هذا السطر</p>'}
  <audio id="pv" controls hidden></audio>
- ${role=='t'?`<textarea id="nt" style="min-height:80px" placeholder="ملاحظة مكتوبة (اختياري)"></textarea><div class="row"><button class="g" id="rc" onclick="rec()">🎤 تسجيل</button><span id="tm" class="m"></span><button onclick="saveN(${i})" style="margin-inline-start:auto">حفظ</button></div><p id="msg" class="m"></p>`:''}`;
- requestAnimationFrame(()=>$('#np').classList.add('open'))}
+ ${role=='t'?`<textarea id="nt" style="min-height:80px" placeholder="ملاحظة مكتوبة (اختياري)"></textarea><div class="row"><button class="g" id="rc" onclick="rec()">🎤 تسجيل</button><span id="tm" class="m"></span><button id="sv" onclick="saveN(${i})" style="margin-inline-start:auto">حفظ</button></div><p id="msg" class="m"></p>`:''}`;
+ document.querySelectorAll('.ln.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('[data-i="'+i+'"]').forEach(e=>e.classList.add('sel'));$('#np').classList.add('open')}
 async function play(p,b){b.disabled=true;const {data,error}=await sb.storage.from('voice').createSignedUrl(p,300);b.disabled=false;
  if(error)return alert('تعذر التشغيل');const a=$('#pv');a.hidden=false;a.src=data.signedUrl;a.play().catch(()=>{})}
 
@@ -146,14 +162,16 @@ async function rec(){const b=$('#rc');if(R){R.stop();return}
  tmr=setInterval(()=>{s++;$('#tm').textContent=s+' / 60 ث';if(s>=60&&R)R.stop()},1000)}
 async function saveN(i){const t=$('#nt').value.trim();if(!t&&!blob)return say('اكتب ملاحظة أو سجّل بصمة',1);
  if(R)return say('أوقف التسجيل أولاً',1);
+ const sv=$('#sv');sv.disabled=true;sv.textContent='جارٍ الحفظ...';
+ const fail=m=>{sv.disabled=false;sv.textContent='حفظ';say(m,1)};
  const id=crypto.randomUUID(),n={id,l:i,t};
  if(blob){const mt=(blob.type||'audio/mp4').split(';')[0],ext=mt.includes('mp4')?'m4a':'webm',p=`${stu}/${cur.id}/${id}.${ext}`;
   say('جارٍ رفع الصوت...');
   const {error}=await sb.storage.from('voice').upload(p,blob,{contentType:mt});
-  if(error)return say('فشل رفع الصوت: '+error.message,1);n.a=p}
+  if(error)return fail('فشل رفع الصوت: '+error.message);n.a=p}
  const notes=[...(cur.notes||[]),n];
  const {error}=await sb.from('chapters').update({notes}).eq('id',cur.id);
- if(error)return say(error.message,1);cur.notes=notes;blob=null;showC(cur.id);ln(i)}
+ if(error)return fail(error.message);cur.notes=notes;blob=null;showC(cur.id);ln(i);say('✓ تم الحفظ',2)}
 async function rmN(id){const n=cur.notes.find(x=>x.id==id);if(n.a)await sb.storage.from('voice').remove([n.a]);
  const notes=cur.notes.filter(x=>x.id!=id);await sb.from('chapters').update({notes}).eq('id',cur.id);cur.notes=notes;showC(cur.id)}
 
@@ -164,7 +182,9 @@ async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').
  ${cs.length?`<div class="row"><button class="d" onclick="delC()">حذف النسخة المعروضة</button></div>`:''}
  ${cs.length<2?`<div class="card"><b>رفع فصل${cs.length?' معدّل':''}</b><input id="ti" placeholder="عنوان الفصل"><textarea id="bo" placeholder="الصق نص الفصل هنا"></textarea><button onclick="up()">رفع</button><p id="msg" class="m"></p></div>`:'<p class="m">لديك نسختان. لرفع نسخة جديدة احذف الأولى بعد أن تطبّق ملاحظاتها.</p>'}`;
  if(cs.length)showC(cs[cs.length-1].id)}
-async function up(){const t=$('#ti').value.trim(),b=$('#bo').value;if(!t||!b.trim())return say('اكتب العنوان والنص',1);
+async function up(){const t=$('#ti').value.trim(),b=$('#bo').value.replace(/\r/g,'');if(!t||!b.trim())return say('اكتب العنوان والنص',1);
+ if(b.length>200000)return say('النص أطول من الحد ('+b.length+' حرف، الأقصى 200000). قسّمه إلى فصلين.',1);
+ say('جارٍ الرفع...');
  const {error}=await sb.from('chapters').insert({student_id:me.id,title:t,body:b});
  if(error)return say(error.message.includes('max_two')?'لديك نسختان. احذف الأولى أولاً.':error.message,1);sHome()}
 async function delC(){
