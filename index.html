@@ -49,7 +49,7 @@ const U='https://dzoluepozbsslorvocwr.supabase.co',K='sb_publishable_iBj-QXz3Uaj
 const sb=supabase.createClient(U,K),$=s=>document.querySelector(s),A=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>s.trim().replace(/\s+/g,' ').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
-const emS=c=>'s'+c.toLowerCase()+'@students.example.com',emT=c=>'t'+c.toLowerCase()+'@teachers.example.com';
+const emS=c=>'s'+c.toLowerCase()+'@gmail.com',emT=c=>'t'+c.toLowerCase()+'@gmail.com';
 const gen=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
 let me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
 function say(m,e){const x=$('#msg');if(x){x.className=e?'e':'m';x.textContent=m}}
@@ -67,7 +67,7 @@ function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>
 <div class="two"><button class="big t" onclick="lm('t')"><svg viewBox="0 0 64 64"><path d="M32 12 4 26l28 14 28-14z" fill="currentColor"/><path d="M16 34v10c0 4 7 8 16 8s16-4 16-8V34l-16 8z" fill="currentColor" opacity=".75"/><path d="M56 28v18" stroke="#f5c542" stroke-width="3" stroke-linecap="round"/><circle cx="56" cy="49" r="3.5" fill="#f5c542"/></svg><span>أستاذ</span></button><button class="big" onclick="lm('s')"><svg viewBox="0 0 64 64"><circle cx="32" cy="20" r="12" fill="currentColor"/><path d="M8 58c0-14 10-22 24-22s24 8 24 22z" fill="currentColor"/></svg><span>طالب</span></button></div>
 <div id="f"></div><p id="msg" class="e">${esc(m||'')}</p></div>`}
 function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
-<input id="b" placeholder="${k=='t'?'الرمز الخاص بك':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
+<input id="b" placeholder="${k=='t'?'الرمز الذي أعطاك إياه المشرف':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
 <button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;$('#a').focus()}
 
 async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
@@ -76,13 +76,13 @@ async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)retu
  const {data:s}=await sb.from('students').select('*').maybeSingle();
  if(!s||norm(s.name)!==norm(n)){await sb.auth.signOut();return say('الاسم أو الرمز غير صحيح',1)}
  boot()}
-async function inT(){const n=$('#a').value.trim(),c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
+async function inT(){const n=$('#a').value.trim(),c=$('#b').value.replace(/[\s"'“”]+/g,'');if(!n||!c)return say('اكتب الاسم والرمز',1);
  const e=emT(c),p=c.toLowerCase();say('جارٍ الدخول...');
  let r=await sb.auth.signInWithPassword({email:e,password:p});
- if(r.error){r=await sb.auth.signUp({email:e,password:p});if(r.error||!r.data.session)return say('الرمز غير صحيح',1)}
+ if(r.error){r=await sb.auth.signUp({email:e,password:p});if(r.error)return say('تعذر إنشاء الحساب: '+r.error.message,1);if(!r.data.session)return say('تأكيد البريد ما زال مفعلاً في Supabase أو توجد محاولة سابقة معلّقة.',1)}
  const {data:t}=await sb.from('teachers').select('*').maybeSingle();
  if(!t){const {error}=await sb.rpc('register_teacher',{p_name:n,p_code:c});
-  if(error){await sb.auth.signOut();return say('الرمز غير صالح أو مستخدم من أستاذ آخر',1)}return boot()}
+  if(error){await sb.auth.signOut();return say(error.message.includes('bad_code')?'الرمز غير صالح أو مستخدم من أستاذ آخر':'خطأ: '+error.message,1)}return boot()}
  if(norm(t.name)!==norm(n)){await sb.auth.signOut();return say('الاسم أو الرمز غير صحيح',1)}
  boot()}
 
