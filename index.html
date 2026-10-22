@@ -67,7 +67,7 @@ function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>
 <div class="two"><button class="big t" onclick="lm('t')"><svg viewBox="0 0 64 64"><path d="M32 12 4 26l28 14 28-14z" fill="currentColor"/><path d="M16 34v10c0 4 7 8 16 8s16-4 16-8V34l-16 8z" fill="currentColor" opacity=".75"/><path d="M56 28v18" stroke="#f5c542" stroke-width="3" stroke-linecap="round"/><circle cx="56" cy="49" r="3.5" fill="#f5c542"/></svg><span>أستاذ</span></button><button class="big" onclick="lm('s')"><svg viewBox="0 0 64 64"><circle cx="32" cy="20" r="12" fill="currentColor"/><path d="M8 58c0-14 10-22 24-22s24 8 24 22z" fill="currentColor"/></svg><span>طالب</span></button></div>
 <div id="f"></div><p id="msg" class="e">${esc(m||'')}</p></div>`}
 function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
-<input id="b" placeholder="${k=='t'?'الرمز الذي أعطاك إياه المشرف':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
+<input id="b" placeholder="${k=='t'?'الرمز الخاص بك':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
 <button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;$('#a').focus()}
 
 async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
