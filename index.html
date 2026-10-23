@@ -22,7 +22,7 @@ button.g:active,button.d:active{transform:translateY(3px);box-shadow:0 0 0 var(-
 .card{background:var(--c);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 2px 14px #1b1f2a14}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}.sp{justify-content:space-between}
 .hero{text-align:center;padding:6vh 0 0;display:flex;flex-direction:column;min-height:calc(100vh - 130px)}.logo{font-size:56px}
-.two{display:flex;flex-direction:column;align-items:center;gap:24px;margin:30px auto}
+.two{width:100%;display:flex;flex-direction:column;align-items:center;gap:24px;margin:30px auto}
 .big{width:min(250px,80%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:20px;box-shadow:0 6px 0 var(--sh),0 12px 20px #0004}
 .big:active{transform:translateY(6px);box-shadow:0 0 0 var(--sh),0 3px 6px #0004}
 .big svg{width:44px;height:44px}.big span{font-size:20px;font-weight:700}
@@ -50,8 +50,8 @@ audio{width:100%;margin:8px 0}
 tr.ln.n td{background:var(--h)}tr.ln.sel td{outline:2px solid var(--a);outline-offset:-2px}
 #bo{min-height:55vh}
 .ft{margin-top:auto;padding:36px 0 4px;font-size:15px}
-.ft a{color:#6f9d10;font-weight:700;text-decoration:none}
-@media(prefers-color-scheme:dark){.ft a{color:#a6d63b}}
+.ft a{color:#2563eb;font-weight:700;text-decoration:none}
+@media(prefers-color-scheme:dark){.ft a{color:#6ea8ff}}
 </style></head><body><main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>
@@ -63,10 +63,12 @@ const emS=c=>'s'+c.toLowerCase()+'@gmail.com',emT=c=>'t'+c.toLowerCase()+'@gmail
 const gen=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
 let ST=[],me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
 function say(m,e){const x=$('#msg');if(x){x.className=e==1?'e':e==2?'ok':'m';x.textContent=m}}
-async function out(){await sb.auth.signOut();home()}
+const ld=()=>{try{return JSON.parse(localStorage.getItem('mrc'))}catch(e){return null}};
+const sv=(r,n,c)=>{try{localStorage.setItem('mrc',JSON.stringify({r,n,c}))}catch(e){}};
+async function out(){try{localStorage.removeItem('mrc')}catch(e){}await sb.auth.signOut();home()}
 
 async function boot(){
- const {data:{session}}=await sb.auth.getSession();if(!session)return home();
+ const {data:{session}}=await sb.auth.getSession();if(!session){home();const v=ld();if(v){lm(v.r);if(v.r=='t')inT();else inS()}return}
  const {data:t}=await sb.from('teachers').select('*').maybeSingle();
  if(t){role='t';me=t;return tHome()}
  const {data:s}=await sb.from('students').select('*').maybeSingle();
@@ -79,23 +81,23 @@ function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>
 <p class="ft"><a href="https://t.me/Mortdh190" target="_blank" rel="noopener noreferrer">مرتضى الدحيدحاوي ©</a></p></div>`}
 function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
 <input id="b" placeholder="${k=='t'?'الرمز الخاص بك':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
-<button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;$('#a').focus()}
+<button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;const v=ld();if(v&&v.r==k){$('#a').value=v.n;$('#b').value=v.c}$('#a').focus()}
 
 async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
  const {error}=await sb.auth.signInWithPassword({email:emS(c),password:c.toLowerCase()});
  if(error)return say('الاسم أو الرمز غير صحيح',1);
  const {data:s}=await sb.from('students').select('*').maybeSingle();
  if(!s||norm(s.name)!==norm(n)){await sb.auth.signOut();return say('الاسم أو الرمز غير صحيح',1)}
- boot()}
+ sv('s',n.trim(),c);boot()}
 async function inT(){const n=$('#a').value.trim(),c=$('#b').value.replace(/[\s"'“”]+/g,'');if(!n||!c)return say('اكتب الاسم والرمز',1);
  const e=emT(c),p=c.toLowerCase();say('جارٍ الدخول...');
  let r=await sb.auth.signInWithPassword({email:e,password:p});
  if(r.error){r=await sb.auth.signUp({email:e,password:p});if(r.error)return say('تعذر إنشاء الحساب: '+r.error.message,1);if(!r.data.session)return say('تأكيد البريد ما زال مفعلاً في Supabase أو توجد محاولة سابقة معلّقة.',1)}
  const {data:t}=await sb.from('teachers').select('*').maybeSingle();
  if(!t){const {error}=await sb.rpc('register_teacher',{p_name:n,p_code:c});
-  if(error){await sb.auth.signOut();return say(error.message.includes('bad_code')?'الرمز غير صالح أو مستخدم من أستاذ آخر':'خطأ: '+error.message,1)}return boot()}
+  if(error){await sb.auth.signOut();return say(error.message.includes('bad_code')?'الرمز غير صالح أو مستخدم من أستاذ آخر':'خطأ: '+error.message,1)}sv('t',n,c);return boot()}
  if(norm(t.name)!==norm(n)){await sb.auth.signOut();return say('الاسم أو الرمز غير صحيح',1)}
- boot()}
+ sv('t',n,c);boot()}
 
 /* ===== الأستاذ ===== */
 const mk=async()=>{const c=gen();
