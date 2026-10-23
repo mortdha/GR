@@ -63,12 +63,13 @@ const emS=c=>'s'+c.toLowerCase()+'@gmail.com',emT=c=>'t'+c.toLowerCase()+'@gmail
 const gen=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
 let ST=[],me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
 function say(m,e){const x=$('#msg');if(x){x.className=e==1?'e':e==2?'ok':'m';x.textContent=m}}
-const ld=()=>{try{return JSON.parse(localStorage.getItem('mrc'))}catch(e){return null}};
-const sv=(r,n,c)=>{try{localStorage.setItem('mrc',JSON.stringify({r,n,c}))}catch(e){}};
-async function out(){try{localStorage.removeItem('mrc')}catch(e){}await sb.auth.signOut();home()}
+const rd=()=>{try{return JSON.parse(localStorage.getItem('mrc2'))||{}}catch(e){return{}}};
+const wr=o=>{try{localStorage.setItem('mrc2',JSON.stringify(o))}catch(e){}};
+const sv=(r,n,c)=>{const o=rd();o[r]={n,c};o.last=r;o.auto=1;wr(o)};
+async function out(){const o=rd();o.auto=0;wr(o);await sb.auth.signOut();home()}
 
 async function boot(){
- const {data:{session}}=await sb.auth.getSession();if(!session){home();const v=ld();if(v){lm(v.r);if(v.r=='t')inT();else inS()}return}
+ const {data:{session}}=await sb.auth.getSession();if(!session){home();const o=rd();if(o.auto&&o[o.last]){lm(o.last);if(o.last=='t')inT();else inS()}return}
  const {data:t}=await sb.from('teachers').select('*').maybeSingle();
  if(t){role='t';me=t;return tHome()}
  const {data:s}=await sb.from('students').select('*').maybeSingle();
@@ -81,7 +82,8 @@ function home(m){A.innerHTML=`<div class="hero"><div class="logo">📖</div><h1>
 <p class="ft"><a href="https://t.me/Mortdh190" target="_blank" rel="noopener noreferrer">مرتضى الدحيدحاوي ©</a></p></div>`}
 function lm(k){$('#f').innerHTML=`<div class="card"><input id="a" placeholder="${k=='t'?'اسمك':'اسمك'}" autocomplete="off">
 <input id="b" placeholder="${k=='t'?'الرمز الخاص بك':'الرمز السري الذي أعطاك إياه أستاذك'}" autocapitalize="none" autocomplete="off">
-<button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button></div>`;const v=ld();if(v&&v.r==k){$('#a').value=v.n;$('#b').value=v.c}$('#a').focus()}
+<button style="width:100%;margin-top:8px" onclick="${k=='t'?'inT()':'inS()'}">دخول</button>${rd()[k]?`<button class="g" style="width:100%;margin-top:10px" onclick="fg('${k}')">نسيان الحساب المحفوظ</button>`:''}</div>`;const v=rd()[k];if(v){$('#a').value=v.n;$('#b').value=v.c}$('#a').focus()}
+function fg(k){const o=rd();delete o[k];wr(o);lm(k)}
 
 async function inS(){const n=$('#a').value,c=$('#b').value.trim();if(!n||!c)return say('اكتب الاسم والرمز',1);
  const {error}=await sb.auth.signInWithPassword({email:emS(c),password:c.toLowerCase()});
