@@ -52,6 +52,8 @@ tr.ln.n td{background:var(--h)}tr.ln.sel td{outline:2px solid var(--a);outline-o
 .ft{margin-top:auto;padding:36px 0 4px;font-size:15px}
 .ft a{color:#2563eb;font-weight:700;text-decoration:none}
 @media(prefers-color-scheme:dark){.ft a{color:#6ea8ff}}
+.ln.df{border-inline-start:4px solid var(--ok)}tr.ln.df td:first-child{border-inline-start:4px solid var(--ok)}
+.ln.hit{background:#ffd54a66}tr.ln.hit td{background:#ffd54a66}
 </style></head><body><main id="app"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>
@@ -61,7 +63,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const norm=s=>s.trim().replace(/\s+/g,' ').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
 const emS=c=>'s'+c.toLowerCase()+'@gmail.com',emT=c=>'t'+c.toLowerCase()+'@gmail.com';
 const gen=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
-let ST=[],me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
+let FS=18,CMP=false,EXT=0,LI=0,ST=[],me=null,role=null,stu=null,CS=[],cur=null,R=null,blob=null,tmr;
 function say(m,e){const x=$('#msg');if(x){x.className=e==1?'e':e==2?'ok':'m';x.textContent=m}}
 const rd=()=>{try{return JSON.parse(localStorage.getItem('mrc2'))||{}}catch(e){return{}}};
 const wr=o=>{try{localStorage.setItem('mrc2',JSON.stringify(o))}catch(e){}};
@@ -107,9 +109,11 @@ const mk=async()=>{const c=gen();
  const {data,error}=await s2.auth.signUp({email:emS(c),password:c});
  return error?{error}:{c,uid:data.user.id}};
 async function tHome(){const {data:s=[]}=await sb.from('students').select('*').order('created_at');ST=s;
+ const {data:cl=[]}=await sb.from('chapters').select('student_id,created_at');const LT={};cl.forEach(c=>{if(!LT[c.student_id]||c.created_at>LT[c.student_id])LT[c.student_id]=c.created_at});
+ const nw=x=>{let v=null;try{v=localStorage.getItem('ls_'+x.id)}catch(e){}return LT[x.id]&&(!v||LT[x.id]>v)};
  A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>
  <div class="card"><b>+ إضافة طالب</b><input id="sn" placeholder="اسم الطالب"><button onclick="addS()">إضافة</button><p id="msg" class="m"></p></div>
- <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b></div></div>
+ <div class="grid">${s.map(x=>`<div class="card"><div class="row"><div class="av">${esc(x.name[0])}</div><div><b>${esc(x.name)}</b>${nw(x)?' <span class="tag on">فصل جديد</span>':''}</div></div>
  <div class="row"><button onclick="openS('${x.id}')">فتح</button><button class="g" onclick="cp('${x.id}',this)">نسخ الرمز</button><button class="d" onclick="delS('${x.id}')">حذف</button></div></div>`).join('')}</div>
  ${s.length?'':'<p class="m">لا طلاب بعد</p>'}`}
 async function addS(){const n=$('#sn').value.trim();if(!n)return;say('جارٍ الإضافة...');
@@ -129,28 +133,37 @@ async function delS(id){if(!confirm('حذف الطالب وكل فصوله وب�
  const {data:cs=[]}=await sb.from('chapters').select('*').eq('student_id',id);
  for(const c of cs)await delCh(c);await sb.from('students').delete().eq('id',id);tHome()}
 async function openS(id){stu=id;
- const {data:cs=[]}=await sb.from('chapters').select('*').eq('student_id',id).order('created_at');CS=cs;
+ const {data:cs=[]}=await sb.from('chapters').select('*').eq('student_id',id).order('created_at');CS=cs;if(cs.length)try{localStorage.setItem('ls_'+id,cs.reduce((m,c)=>c.created_at>m?c.created_at:m,''))}catch(e){}
  A.innerHTML=`<button class="g" onclick="tHome()">→ رجوع</button><div id="pl"></div><div id="ch"></div>${cs.length?'':'<p class="m">لم يرفع الطالب فصلاً بعد</p>'}`;
  if(cs.length)showC(cs[cs.length-1].id)}
 
 /* ===== عرض الفصل ===== */
-function rows(c){const nl=new Set((c.notes||[]).map(n=>n.l));let h='',t=0;
+const inR=(n,i)=>i>=n.l&&i<=(n.e??n.l);
+function selR(){document.querySelectorAll('.ln.sel').forEach(e=>e.classList.remove('sel'));for(let j=LI;j<=LI+EXT;j++)document.querySelectorAll('[data-i="'+j+'"]').forEach(e=>e.classList.add('sel'))}
+function ex(d){EXT=Math.max(0,Math.min(cur.body.split('\n').length-1-LI,EXT+d));$('#xn').textContent=EXT+1;selR()}
+function fz(d){FS=Math.max(14,Math.min(30,FS+d*2));$('.paper').style.fontSize=FS+'px'}
+function fnd(q){q=q.trim();const els=[...document.querySelectorAll('.paper .ln')];els.forEach(e=>e.classList.remove('hit'));if(!q)return;const hs=els.filter(e=>e.textContent.includes(q));hs.forEach(e=>e.classList.add('hit'));if(hs[0])hs[0].scrollIntoView({block:'center',behavior:'smooth'})}
+function rows(c){const nl=new Set();(c.notes||[]).forEach(n=>{for(let j=n.l;j<=(n.e??n.l);j++)nl.add(j)});
+ const od=CMP&&CS.length==2&&c.id==CS[1].id?new Set(CS[0].body.split('\n').map(x=>x.trim())):null;let h='',t=0;
  c.body.split('\n').forEach((x,i)=>{const tb=x.includes('\t');
   if(tb&&!t){h+='<div class="tw"><table>';t=1}if(!tb&&t){h+='</table></div>';t=0}
-  const k='ln '+(nl.has(i)?'n':'')+'" data-i="'+i+'" onclick="ln('+i+')"';
+  const df=od&&x.trim()&&!od.has(x.trim());const k='ln '+(nl.has(i)?'n':'')+(df?' df':'')+'" data-i="'+i+'" onclick="ln('+i+')"';
   h+=tb?`<tr class="${k}>${x.split('\t').map(y=>`<td>${esc(y)}</td>`).join('')}</tr>`:`<div class="${k}>${esc(x)||'&nbsp;'}</div>`});
  return h+(t?'</table></div>':'')}
-function showC(id){cur=CS.find(c=>c.id==id);const nl=new Set((cur.notes||[]).map(n=>n.l));
+function showC(id){cur=CS.find(c=>c.id==id);
  const pl=CS.map((c,i)=>`<button class="g ${c.id==id?'act':''}" onclick="showC('${c.id}')">النسخة ${i+1}</button>`).join('');
  if(role=='t')$('#pl').innerHTML=`<div class="pills">${pl}</div>`;
- $('#ch').innerHTML=`${role=='s'?`<div class="pills">${pl}</div>`:''}<h3>${esc(cur.title)}</h3><p class="m">اضغط على أي سطر${role=='t'?' لكتابة ملاحظة أو تسجيل بصمة':' لرؤية الملاحظات (السطر الملوّن عليه ملاحظة)'}</p>
- <div class="paper">${rows(cur)}</div><div class="sheet" id="np"></div>`}
-function ln(i){stopRec();blob=null;const ns=(cur.notes||[]).filter(n=>n.l==i);
+ const second=CS.length==2&&cur.id==CS[1].id;
+ const hint=role=='t'?'اضغط على أي سطر لكتابة ملاحظة أو تسجيل بصمة':((cur.notes||[]).length?'السطور الملوّنة عليها ملاحظات من مشرفك، اضغط عليها لتقرأ وتسمع.':'قم بإبلاغ مشرفك عن طريق التلغرام أو واتساب أو الاتصال بأنك رفعت الفصل، وانتظر دخوله وكتابة ملاحظاته.');
+ $('#ch').innerHTML=`${role=='s'?`<div class="pills">${pl}</div>`:''}<h3>${esc(cur.title)}</h3><p class="m">${hint}</p>
+ <div class="row"><button class="g" onclick="fz(1)">A+</button><button class="g" onclick="fz(-1)">A−</button><input placeholder="بحث في الفصل" oninput="fnd(this.value)" style="flex:1;min-width:140px;width:auto;margin:0">${second?`<button class="g" onclick="CMP=!CMP;showC('${cur.id}')">${CMP?'إخفاء التغييرات':'إظهار ما تغيّر عن النسخة الأولى'}</button>`:''}</div>
+ <div class="paper" style="font-size:${FS}px">${rows(cur)}</div><div class="sheet" id="np"></div>`}
+function ln(i){stopRec();blob=null;EXT=0;LI=i;const ns=(cur.notes||[]).filter(n=>inR(n,i));if(role=='s')try{localStorage.setItem('ns_'+me.id,CS.reduce((a,c)=>a+(c.notes||[]).length,0))}catch(e){}
  $('#np').innerHTML=`<div class="row sp"><b>السطر ${i+1}</b><button class="g" onclick="closeS()">✕</button></div>
- ${ns.map(n=>`<div class="note">${esc(n.t||'')}<div class="row">${n.a?`<button class="g" data-p="${esc(n.a)}" onclick="play(this.dataset.p,this)">▶ تشغيل البصمة</button>`:''}${role=='t'?`<button class="d" data-n="${esc(n.id)}" onclick="rmN(this.dataset.n)">حذف</button>`:''}</div></div>`).join('')||'<p class="m">لا ملاحظات على هذا السطر</p>'}
+ ${ns.map(n=>`<div class="note">${n.e>n.l?`<div class="m">الأسطر ${n.l+1}–${n.e+1}</div>`:''}${esc(n.t||'')}${n.done?' <span class="tag on">✓ طُبّقت</span>':''}<div class="row">${n.a?`<button class="g" data-p="${esc(n.a)}" onclick="play(this.dataset.p,this)">▶ تشغيل البصمة</button>`:''}${role=='s'?`<button class="g" data-n="${esc(n.id)}" onclick="dn(this.dataset.n,${!n.done})">${n.done?'إلغاء التطبيق':'✓ تم التطبيق'}</button>`:''}${role=='t'?`<button class="d" data-n="${esc(n.id)}" onclick="rmN(this.dataset.n)">حذف</button>`:''}</div></div>`).join('')||'<p class="m">لا ملاحظات على هذا السطر</p>'}
  <audio id="pv" controls hidden></audio>
- ${role=='t'?`<textarea id="nt" style="min-height:80px" placeholder="ملاحظة مكتوبة (اختياري)"></textarea><div class="row"><button class="g" id="rc" onclick="rec()">🎤 تسجيل</button><span id="tm" class="m"></span><button id="sv" onclick="saveN(${i})" style="margin-inline-start:auto">حفظ</button></div><p id="msg" class="m"></p>`:''}`;
- document.querySelectorAll('.ln.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('[data-i="'+i+'"]').forEach(e=>e.classList.add('sel'));$('#np').classList.add('open')}
+ ${role=='t'?`<div class="row"><span class="m">تشمل</span><button class="g" onclick="ex(-1)">−</button><b id="xn">1</b><button class="g" onclick="ex(1)">+</button><span class="m">سطر (+ لتشمل الأسطر التالية)</span></div><textarea id="nt" style="min-height:80px" placeholder="ملاحظة مكتوبة (اختياري)"></textarea><div class="row"><button class="g" id="rc" onclick="rec()">🎤 تسجيل</button><span id="tm" class="m"></span><button id="sv" onclick="saveN(${i})" style="margin-inline-start:auto">حفظ</button></div><p id="msg" class="m"></p>`:''}`;
+ selR();$('#np').classList.add('open')}
 async function play(p,b){b.disabled=true;const {data,error}=await sb.storage.from('voice').createSignedUrl(p,300);b.disabled=false;
  if(error)return alert('تعذر التشغيل');const a=$('#pv');a.hidden=false;a.src=data.signedUrl;a.play().catch(()=>{})}
 
@@ -175,20 +188,22 @@ async function saveN(i){const t=$('#nt').value.trim();if(!t&&!blob)return say('�
  if(R)return say('أوقف التسجيل أولاً',1);
  const sv=$('#sv');sv.disabled=true;sv.textContent='جارٍ الحفظ...';
  const fail=m=>{sv.disabled=false;sv.textContent='حفظ';say(m,1)};
- const id=crypto.randomUUID(),n={id,l:i,t};
+ const id=crypto.randomUUID(),n={id,l:i,t};if(EXT>0)n.e=i+EXT;
  if(blob){const mt=(blob.type||'audio/mp4').split(';')[0],ext=mt.includes('mp4')?'m4a':'webm',p=`${stu}/${cur.id}/${id}.${ext}`;
   say('جارٍ رفع الصوت...');
   const {error}=await sb.storage.from('voice').upload(p,blob,{contentType:mt});
   if(error)return fail('فشل رفع الصوت: '+error.message);n.a=p}
- const notes=[...(cur.notes||[]),n];
+ const {data:f}=await sb.from('chapters').select('notes').eq('id',cur.id).single();
+ const notes=[...((f&&f.notes)||cur.notes||[]),n];
  const {error}=await sb.from('chapters').update({notes}).eq('id',cur.id);
  if(error)return fail(error.message);cur.notes=notes;blob=null;showC(cur.id);ln(i);say('✓ تم الحفظ',2)}
+async function dn(id,v){const {error}=await sb.rpc('mark_note',{p_chapter:cur.id,p_note:id,p_done:v});if(error)return alert('تعذر الحفظ: '+error.message);cur.notes.find(x=>x.id==id).done=v;showC(cur.id);ln(LI)}
 async function rmN(id){const n=cur.notes.find(x=>x.id==id);if(n.a)await sb.storage.from('voice').remove([n.a]);
- const notes=cur.notes.filter(x=>x.id!=id);await sb.from('chapters').update({notes}).eq('id',cur.id);cur.notes=notes;showC(cur.id)}
+ const {data:f}=await sb.from('chapters').select('notes').eq('id',cur.id).single();const notes=((f&&f.notes)||cur.notes).filter(x=>x.id!=id);await sb.from('chapters').update({notes}).eq('id',cur.id);cur.notes=notes;showC(cur.id)}
 
 /* ===== الطالب ===== */
-async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').order('created_at');CS=cs;stu=me.id;const {data:tn}=await sb.rpc('my_teacher_name');
- A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>${tn?`<p class="m">مشرفك .. ${esc(dr(tn))}</p>`:''}
+async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').order('created_at');CS=cs;stu=me.id;const {data:tn}=await sb.rpc('my_teacher_name');let sen=0;try{sen=+localStorage.getItem('ns_'+me.id)||0}catch(e){}const tot=cs.reduce((a,c)=>a+(c.notes||[]).length,0);
+ A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>${tn?`<p class="m">مشرفك .. ${esc(dr(tn))}</p>`:''}${tot>sen?'<div class="card" style="border:2px solid var(--a)">🔔 وصلتك ملاحظات جديدة من مشرفك</div>':''}
  <div id="ch"></div>
  ${cs.length?`<div class="row"><button class="d" onclick="delC()">${cs.length==2?'حذف النسخة الأولى (لرفع نسخة جديدة)':'حذف النسخة'}</button></div>`:''}
  ${cs.length<2?`<div class="card"><b>رفع فصل${cs.length?' معدّل':''}</b><input id="ti" placeholder="عنوان الفصل"><textarea id="bo" placeholder="الصق نص الفصل هنا"></textarea><button onclick="up()">رفع</button><p id="msg" class="m"></p></div>`:'<p class="m">لديك نسختان. لرفع نسخة جديدة احذف الأولى بعد أن تطبّق ملاحظاتها.</p>'}`;
