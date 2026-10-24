@@ -54,8 +54,8 @@ tr.ln.n td{background:var(--h)}tr.ln.sel td{outline:2px solid var(--a);outline-o
 @media(prefers-color-scheme:dark){.ft a{color:#6ea8ff}}
 .ln.df{border-inline-start:4px solid var(--ok)}tr.ln.df td:first-child{border-inline-start:4px solid var(--ok)}
 .ln.hit{background:#ffd54a66}tr.ln.hit td{background:#ffd54a66}
-mark.mk{background:var(--h);color:inherit;border-radius:6px;padding:1px 0;cursor:pointer;box-shadow:inset 0 -2px 0 var(--a)}
-mark.mk.dn{background:var(--ok2);box-shadow:inset 0 -2px 0 var(--ok)}
+mark.mk{background:var(--h);color:inherit;border-radius:6px;padding:1px 0;cursor:pointer;text-decoration:none}
+mark.mk.dn{background:var(--ok2)}
 .selbar{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,200%);z-index:8;transition:transform .15s}
 .selbar.on{transform:translate(-50%,0)}
 </style></head><body><main id="app"></main>
@@ -142,7 +142,7 @@ async function openS(id){stu=id;
  if(cs.length)showC(cs[cs.length-1].id)}
 
 /* ===== عرض الفصل ===== */
-function fz(d){FS=Math.max(14,Math.min(30,FS+d*2));$('.paper').style.fontSize=FS+'px'}
+function fz(d){FS=Math.max(14,Math.min(30,FS+d*2));const q=$('.paper');if(q)q.style.fontSize=FS+'px'}
 function fnd(q){q=q.trim();const els=[...document.querySelectorAll('.paper .ln')];els.forEach(e=>e.classList.remove('hit'));if(!q)return;const hs=els.filter(e=>e.textContent.includes(q));hs.forEach(e=>e.classList.add('hit'));if(hs[0])hs[0].scrollIntoView({block:'center',behavior:'smooth'})}
 const lsOf=c=>{let o=0;return c.body.split('\n').map(x=>{const r=[o,x];o+=x.length+1;return r})};
 const rngs=(c,L)=>(c.notes||[]).map(n=>{if(n.o1!=null)return{n,a:n.o1,b:n.o2};const i=Math.min(n.l,L.length-1),j=Math.min(n.e??n.l,L.length-1);return{n,a:L[i][0],b:L[j][0]+L[j][1].length}});
@@ -162,14 +162,33 @@ function rows(c){const L=lsOf(c),R=rngs(c,L);
   else h+=`<div class="${k}" data-o="${o}">${seg(x,o,R)||'&nbsp;'}</div>`});
  return h+(t?'</table></div>':'')}
 function showC(id){cur=CS.find(c=>c.id==id);
- const pl=CS.map((c,i)=>`<button class="g ${c.id==id?'act':''}" onclick="showC('${c.id}')">النسخة ${i+1}</button>`).join('');
+ const pl=CS.map((c,i)=>`<button class="g ${c.id==id?'act':''}" onclick="showC('${c.id}')">${i==0?'الفصل الافتراضي':'الفصل المعدل'}</button>`).join('');
  if(role=='t')$('#pl').innerHTML=`<div class="pills">${pl}</div>`;
  const second=CS.length==2&&cur.id==CS[1].id;
  const hint=role=='t'?'حدّد أي جزء من النص (بالضغط المطوّل ثم سحب المؤشر) ثم اضغط «ملاحظة على المحدد».':((cur.notes||[]).length?'الأجزاء الملوّنة عليها ملاحظات من مشرفك، اضغط عليها لتقرأ وتسمع.':'قم بإبلاغ مشرفك عن طريق التلغرام أو واتساب أو الاتصال بأنك رفعت الفصل، وانتظر دخوله وكتابة ملاحظاته.');
  $('#ch').innerHTML=`${role=='s'?`<div class="pills">${pl}</div>`:''}<h3>${esc(cur.title)}</h3><p class="m">${hint}</p>
- <div class="row"><button class="g" onclick="fz(1)">A+</button><button class="g" onclick="fz(-1)">A−</button><input placeholder="بحث في الفصل" oninput="fnd(this.value)" style="flex:1;min-width:140px;width:auto;margin:0">${second?`<button class="g" onclick="CMP=!CMP;showC('${cur.id}')">${CMP?'إخفاء التغييرات':'إظهار ما تغيّر عن النسخة الأولى'}</button>`:''}</div>
+ <div class="row"><button class="g" onclick="fz(1)">A+</button><button class="g" onclick="fz(-1)">A−</button><input placeholder="بحث في الفصل" oninput="fnd(this.value)" style="flex:1;min-width:140px;width:auto;margin:0">${second?`<button class="g" onclick="CMP=!CMP;showC('${cur.id}')">${CMP?'إخفاء التغييرات':'إظهار ما تغيّر عن الفصل الافتراضي'}</button>`:''}</div>
+ ${role=='s'&&second?'<div class="row"><button class="g" onclick="ed()">✏️ تعديل نص الفصل المعدل</button></div>':''}
  <div class="paper" style="font-size:${FS}px">${rows(cur)}</div><div class="sheet" id="np"></div>
  ${role=='t'?'<button id="sb" class="selbar" onpointerdown="clearTimeout(hb)" onclick="newN()">💬 ملاحظة على المحدد</button>':''}`}
+/* ===== تعديل الطالب للفصل المعدل ===== */
+function reanchor(old,nw,notes){let p=0;const m=Math.min(old.length,nw.length);while(p<m&&old[p]==nw[p])p++;
+ let q=0;while(q<m-p&&old[old.length-1-q]==nw[nw.length-1-q])q++;
+ const dl=nw.length-old.length,oe=old.length-q,L=lsOf({body:old}),out={};
+ (notes||[]).forEach(n=>{let a,b;
+  if(n.o1!=null){a=n.o1;b=n.o2}else{const i=Math.min(n.l,L.length-1),j=Math.min(n.e??n.l,L.length-1);a=L[i][0];b=L[j][0]+L[j][1].length}
+  const tx=old.slice(a,b),g=a<=p?a:a>=oe?a+dl:p;let na=-1;
+  if(tx){let bd=1e9,i=nw.indexOf(tx);while(i>=0){const d=Math.abs(i-g);if(d<bd){bd=d;na=i}i=nw.indexOf(tx,i+1)}}
+  let nb;if(na>=0)nb=na+tx.length;else{na=a<=p?a:a>=oe?a+dl:p;nb=b<=p?b:b>=oe?b+dl:Math.max(na,oe+dl)}
+  na=Math.max(0,Math.min(na,nw.length));nb=Math.max(na,Math.min(nb,nw.length));out[n.id]=[na,nb]});
+ return out}
+function ed(){$('.paper').outerHTML=`<textarea id="eb" style="min-height:60vh">\n${esc(cur.body)}</textarea><div class="row"><button onclick="sd()">حفظ التعديلات</button><button class="g" onclick="showC('${cur.id}')">إلغاء</button></div><p id="msg" class="m">الملاحظات تبقى مرتبطة بنصها قدر الإمكان، وقد تتحرك الملاحظة إن عدّلت النص الذي عليها.</p>`}
+async function sd(){const nw=$('#eb').value.replace(/\r/g,'');if(!nw.trim())return say('النص فارغ',1);
+ if(nw.length>200000)return say('النص أطول من الحد (200000 حرف)',1);
+ const out=reanchor(cur.body,nw,cur.notes);say('جارٍ الحفظ...');
+ const {error}=await sb.rpc('edit_chapter',{p_id:cur.id,p_body:nw,p_anchors:out});
+ if(error)return say('تعذر الحفظ: '+error.message,1);
+ cur.body=nw;(cur.notes||[]).forEach(n=>{const r=out[n.id];if(r){n.o1=r[0];n.o2=r[1]}});showC(cur.id)}
 /* ===== تحديد جزء من النص ===== */
 function pt(node,off){const el=(node.nodeType==1?node:node.parentElement).closest('[data-o]');if(!el||!el.closest('.paper'))return null;
  const r=document.createRange();r.setStart(el,0);r.setEnd(node,off);return +el.dataset.o+r.toString().length}
@@ -234,14 +253,14 @@ async function rmN(id){const n=cur.notes.find(x=>x.id==id);if(n&&n.a)await sb.st
 async function sHome(){const {data:cs=[]}=await sb.from('chapters').select('*').order('created_at');CS=cs;stu=me.id;const {data:tn}=await sb.rpc('my_teacher_name');let sen=0;try{sen=+localStorage.getItem('ns_'+me.id)||0}catch(e){}const tot=cs.reduce((a,c)=>a+(c.notes||[]).length,0);
  A.innerHTML=`<div class="row sp"><h3>أهلاً ${esc(me.name)}</h3><button class="g" onclick="out()">خروج</button></div>${tn?`<p class="m">مشرفك .. ${esc(dr(tn))}</p>`:''}${tot>sen?'<div class="card" style="border:2px solid var(--a)">🔔 وصلتك ملاحظات جديدة من مشرفك</div>':''}
  <div id="ch"></div>
- ${cs.length?`<div class="row"><button class="d" onclick="delC()">${cs.length==2?'حذف النسخة الأولى (لرفع نسخة جديدة)':'حذف النسخة'}</button></div>`:''}
- ${cs.length<2?`<div class="card"><b>رفع فصل${cs.length?' معدّل':''}</b><input id="ti" placeholder="عنوان الفصل"><textarea id="bo" placeholder="الصق نص الفصل هنا"></textarea><button onclick="up()">رفع</button><p id="msg" class="m"></p></div>`:'<p class="m">لديك نسختان. لرفع نسخة جديدة احذف الأولى بعد أن تطبّق ملاحظاتها.</p>'}`;
+ ${cs.length?`<div class="row"><button class="d" onclick="delC()">${cs.length==2?'حذف الفصل الافتراضي (لرفع فصل معدل جديد)':'حذف الفصل'}</button></div>`:''}
+ ${cs.length<2?`<div class="card"><b>رفع فصل${cs.length?' معدّل':''}</b><input id="ti" placeholder="عنوان الفصل"><textarea id="bo" placeholder="الصق نص الفصل هنا"></textarea><button onclick="up()">رفع</button><p id="msg" class="m"></p></div>`:'<p class="m">لديك الفصل الافتراضي والفصل المعدل. لرفع فصل جديد احذف الافتراضي أولاً بعد أن تطبّق ملاحظاته.</p>'}`;
  if(cs.length)showC(cs[cs.length-1].id)}
 async function up(){const t=$('#ti').value.trim(),b=$('#bo').value.replace(/\r/g,'');if(!t||!b.trim())return say('اكتب العنوان والنص',1);
  if(b.length>200000)return say('النص أطول من الحد ('+b.length+' حرف، الأقصى 200000). قسّمه إلى فصلين.',1);
  say('جارٍ الرفع...');
  const {error}=await sb.from('chapters').insert({student_id:me.id,title:t,body:b});
- if(error)return say(error.message.includes('max_two')?'لديك نسختان. احذف الأولى أولاً.':error.message,1);sHome()}
+ if(error)return say(error.message.includes('max_two')?'لديك الفصل الافتراضي والمعدل. احذف الافتراضي أولاً.':error.message,1);sHome()}
 async function delC(){
  if(!confirm('حذف هذه النسخة بملاحظاتها وبصماتها نهائياً؟ تأكد أنك طبّقت الملاحظات.'))return;await delCh(CS[0]);sHome()}
 
